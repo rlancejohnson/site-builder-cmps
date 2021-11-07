@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    </head>
+    <body>
+        <div id="root"></div>
+
+        <style>
+            .agenda {
+                background-color: #e4e4e4;
+                margin: 20px;
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .agenda-scroll {
+                overflow: scroll;
+                height: 300px;
+            }
+
+            .event {
+                background-color: #fff;
+                margin: 20px;
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .event-title {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        </style>
+
+        <script type="text/babel">
+            const { useState, useEffect } = React;
+
+            function App() {
+                const [ events, setEvents ] = useState([]);
+
+                useEffect(async () => {
+                    //Props to https://github.com/benborgers/opensheet
+                    const res = await fetch('https://opensheet.vercel.app/1tFAxqswHkeFXPSE4HyNzRFgezF6NZ2LstOT26aUi7Hk/Events');
+
+                    const data = await res.json();
+
+                    setEvents(data.sort((a, b) => {
+                        return Date.parse(a.Date) - Date.parse(b.Date)
+                    }));
+                }, []);
+
+                const updateShowFullDesc = (evt) => {
+                    const eventId = evt.target.getAttribute('data-id');
+
+                    setEvents(events.map(e => ({
+                        ...e,
+                        showFullDesc: e.Timestamp === eventId || e.showFullDesc
+                    })));
+                };
+
+                //Break out into day columns
+
+                return (
+                    <div className="agenda">
+                        <h2>Ward Events</h2>
+                        <div className="agenda-scroll">
+                            {events.length > 0 && events.map((event, index) => (
+                                <div key={event.Timestamp} className="event">
+                                    <div className="event-title">{event.Name}</div>
+                                    <div>{event.Date}</div>
+                                    <div>{event.Location}</div>
+                                    <hr/>
+                                    <div>
+                                        {event.Description < 50 || event.showFullDesc ? event.Description : (
+                                            <span>
+                                                {event.Description.substring(0, 50)}<a data-id={event.Timestamp} onClick={updateShowFullDesc}>...</a>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.getElementById('root'))
+        </script>
+    </body>
+</html>
