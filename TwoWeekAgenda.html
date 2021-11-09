@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    </head>
+    <body>
+        <div id="root"></div>
+
+        <style>
+            .agenda {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .agenda-day {
+                background-color: #e4e4e4;
+                margin: 20px;
+                padding: 20px;
+                border-radius: 20px;
+                width: 14.2%;
+            }
+
+            .agenda-scroll {
+                overflow: scroll;
+                height: 300px;
+            }
+
+            .event {
+                background-color: #fff;
+                margin: 20px;
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .event-title {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        </style>
+
+        <script type="text/babel">
+            const { useState, useEffect } = React;
+
+            const DailyAgenda = ({ dateTitle, events }) => {
+                const updateShowFullDesc = (evt) => {
+                    const eventId = evt.target.getAttribute('data-id');
+
+                    setEvents(events.map(e => ({
+                        ...e,
+                        showFullDesc: e.Timestamp === eventId || e.showFullDesc
+                    })));
+                };
+
+                return (
+                    <div className="agenda-day">
+                        <h3>{dateTitle}</h3>
+                        <div className="agenda-scroll">
+                            {events.length > 0 && events.map((event) => (
+                                <div className="event">
+                                    <div className="event-title">{event.Name}</div>
+                                    <div>{event.Date}</div>
+                                    <div>{event.Location}</div>
+                                    <hr/>
+                                    <div>
+                                        {event.Description < 50 || event.showFullDesc ? event.Description : (
+                                            <span>
+                                                {event.Description.substring(0, 50)}<a data-id={event.Timestamp} onClick={updateShowFullDesc}>...</a>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )
+            }
+
+            const App = () => {
+                const [ days, setDays ] = useState([]);
+                const [ events, setEvents ] = useState([]);
+
+                const agendaDays = (startDate = new Date(), dayOfWeek = 0, numOfDays = 14) => {
+                    let beginningDate = new Date(startDate);
+                    beginningDate.setDate(beginningDate.getDate() - ((beginningDate.getDay()) - dayOfWeek));
+
+                    let endDate = new Date(beginningDate);
+                    endDate.setDate(endDate.getDate() + numOfDays);
+
+                    let agendaDays = [];
+                    let date = new Date(beginningDate);
+
+                    while (date < endDate) {
+                        agendaDays.push(new Date(date));
+                        date.setDate(date.getDate() + 1);
+                    }
+
+                    return agendaDays;
+                }
+
+                useEffect(() => {
+                    setDays(agendaDays());
+                });
+
+                useEffect(async () => {
+                    //Props to https://github.com/benborgers/opensheet
+                    const res = await fetch('https://opensheet.vercel.app/1tFAxqswHkeFXPSE4HyNzRFgezF6NZ2LstOT26aUi7Hk/Events');
+
+                    const data = await res.json();
+
+                    setEvents(data.sort((a, b) => {
+                        return Date.parse(a.Date) - Date.parse(b.Date)
+                    }));
+                }, []);
+
+                const datesMatch = (date1, date2) => {
+                    const newDate1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+
+                    const newDate2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+
+                    return newDate1 === newDate2;
+                }
+
+                return (
+                    <div>
+                        <h1>Ward Calendar</h1>
+                        <div className="agenda">
+                            {days.map((day) => (
+                                <DailyAgenda
+                                    key={day}
+                                    dateTitle={`${day.toLocaleDateString('en-US', { weekday: 'long' })} (${day.getMonth()}/${day.getDate()})`}
+                                    events={events.filter((event) => datesMatch(Date.parse(event.Date), day))}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.getElementById('root'))
+        </script>
+    </body>
+</html>
