@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
+        <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    </head>
+    <body>
+        <div id="root"></div>
+
+        <style>
+
+        </style>
+
+        <script type="text/babel">
+            const { useState, useEffect } = React;
+
+            const Announcement = ({ announcement }) => {
+                return (
+                    <a href={announcement.link} target="_blank">
+                        <h2>{announcement.title}</h2>
+                        <img src={announcement.image}/>
+                        <p>{announcement.message}</p>
+                    </a>
+                )
+            }
+
+            const Slider = ({ announcements }) => {
+                return (
+                    <div>
+                        {announcements.map((announcement) => (
+                            <Announcement announcement={announcement}/>
+                        ))}
+                    </div>
+                )
+            }
+
+            const App = () => {
+                const [announcements, setAnnouncements] = useState([
+                    {
+                        id: 1,
+                        title: 'Tithing Settlement',
+                        message: 'Schedule an appointment here.',
+                        image: 'https://via.placeholder.com/350x200.png',
+                        link: 'http://www.google.com/'
+                    },
+                    {
+                        id: 2,
+                        title: 'Blood Drive Signups',
+                        message: 'Signup here!',
+                        image: 'https://via.placeholder.com/350x200.png',
+                        link: 'http://www.facebook.com/'
+                    },
+                ]);
+
+                return (
+                    <div>
+                        <Slider announcements={announcements}/>
+                    </div>
+                );
+            }
+
+            ReactDOM.render(<App />, document.getElementById('root'))
+        </script>
+    </body>
+</html>
