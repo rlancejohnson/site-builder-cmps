@@ -15,6 +15,26 @@
         <script type="text/babel">
             const { useState, useEffect } = React;
 
+            const SliderIndicator = ({ currentSlide }) => {
+                const slideStyle = {
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    backgroundColor: 'grey'
+                };
+
+                const currentSlideStyle = {
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    backgroundColor: 'blue'
+                };
+
+                return (
+                    <div style={currentSlide ? currentSlideStyle : slideStyle}></div>
+                )
+            }
+
             const Announcement = ({ announcement }) => {
                 return (
                     <a href={announcement.link} target="_blank">
@@ -26,10 +46,32 @@
             }
 
             const Slider = ({ announcements }) => {
+                const [ currentSlide, setCurrentSlide ] = useState(0);
+
+                const slideTimer = () => {
+                    setTimeout(() => {
+                        const index = currentSlide + 1;
+                        setCurrentSlide(index % announcements.length);
+                    }, 7000);
+                }
+
                 return (
                     <div>
+                        {announcements.map((announcement) => {
+                            if(announcement.id === currentSlide) {
+                                return (
+                                    <Announcement
+                                        key={announcement.id}
+                                        announcement={announcement}
+                                        onload={slideTimer()}
+                                    />
+                                );
+                            }
+                        })}
                         {announcements.map((announcement) => (
-                            <Announcement announcement={announcement}/>
+                            <SliderIndicator
+                                currentSlide={announcement.id === currentSlide}
+                            />
                         ))}
                     </div>
                 )
@@ -38,14 +80,14 @@
             const App = () => {
                 const [announcements, setAnnouncements] = useState([
                     {
-                        id: 1,
+                        id: 0,
                         title: 'Tithing Settlement',
                         message: 'Schedule an appointment here.',
                         image: 'https://via.placeholder.com/350x200.png',
                         link: 'http://www.google.com/'
                     },
                     {
-                        id: 2,
+                        id: 1,
                         title: 'Blood Drive Signups',
                         message: 'Signup here!',
                         image: 'https://via.placeholder.com/350x200.png',
